@@ -1,21 +1,19 @@
 <script lang="ts">
   import { type Piece } from "scouts-wasm";
   import { onMount } from "svelte";
+  import "#lib/scouts.ts";
 
   const rows = 10;
   const cols = 8;
 
   let arr: (Piece | null)[] = Array(rows * cols).fill(null);
-
-  const pieces: Piece[] = [
-    { kind: "scout", player: 1, position: "2,3", returning: false },
-  ];
+  let pieces: Piece[] = [];
 
   const pos_to_idx = (x: number, y: number) => {
     return y * cols + x;
   };
 
-  pieces.forEach((piece) => {
+  $: pieces.forEach((piece) => {
     const pos = piece.position as string;
     const [x, y] = pos.split(",").map((item) => parseInt(item));
     const idx = pos_to_idx(x, y);
@@ -29,7 +27,18 @@
     return (x + y) % 2 === 0;
   };
 
-  onMount(async () => {});
+  function updatePieces() {
+    Scouts.boardPieces().then((res) => (pieces = res));
+  }
+
+  // Delete this once we have ways to make moves
+  onMount(async () => {
+    await Scouts.makeMove(1, "place_scout 0,9");
+    await Scouts.makeMove(2, "place_scout 0,0");
+    await Scouts.makeMove(1, "place_scout 1,9");
+    await Scouts.makeMove(2, "place_scout 1,0");
+    updatePieces();
+  });
 </script>
 
 <div class="main">
