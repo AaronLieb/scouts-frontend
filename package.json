@@ -25,6 +25,9 @@
   "dependencies": {
     "scouts-wasm": "github:diamondburned/scouts-wasm#dist"
   },
+  "imports": {
+    "#lib/*": "./src/lib/*"
+  },
   "prettier": {
     "plugins": [
       "prettier-plugin-svelte"
