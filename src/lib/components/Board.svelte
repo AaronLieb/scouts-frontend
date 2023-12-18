@@ -56,7 +56,7 @@
 
       if (!_piece) throw new Error("Piece is null. Shouldn't be here.");
 
-      console.log(`Clicked a piece: ${_piece}`);
+      console.log("Clicked a piece:", _piece);
 
       if (_piece.player == player) action = "click_friendly_piece";
       else if (_piece.player != player) action = "click_enemy_piece";
