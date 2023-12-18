@@ -1,14 +1,12 @@
 <script lang="ts">
   import { type Piece } from "scouts-wasm";
   import { onMount } from "svelte";
-  import "#lib/scouts.ts";
+  import { makeMove, pieces, currentTurn } from "#lib/scouts.js";
 
   const rows = 10;
   const cols = 8;
-  let player = 1; // TODO: don't hardcode this, get info from backend
 
   let arr: (Piece | null)[] = Array(rows * cols).fill(null);
-  let pieces: Piece[] = [];
 
   const pos_to_idx = (x: number, y: number) => {
     return y * cols + x;
@@ -18,13 +16,21 @@
     return { x: idx % cols, y: Math.floor(idx / cols) };
   };
 
-  $: pieces.forEach((piece) => {
-    const pos = piece.position as string;
-    const [x, y] = pos.split(",").map((item) => parseInt(item));
+  $: $pieces.forEach((piece) => {
+    let x, y;
+    switch (piece.kind) {
+      case "scout":
+        [x, y] = piece.position;
+        break;
+      case "boulder":
+        [x, y] = piece.position[0];
+        break;
+    }
     const idx = pos_to_idx(x, y);
     arr[idx] = piece;
     arr = [...arr];
   });
+  $: player = $currentTurn?.player;
 
   const isAlternate = (idx: number) => {
     const x = idx % cols;
@@ -32,18 +38,11 @@
     return (x + y) % 2 === 0;
   };
 
-  function updatePieces() {
-    Scouts.boardPieces().then((res) => (pieces = res));
-  }
-
   // Delete this once we have ways to make moves
-  onMount(async () => {
-    await Scouts.makeMove(1, "place_scout 0,9");
-    await Scouts.makeMove(2, "place_scout 0,0");
-    await Scouts.makeMove(1, "place_scout 1,9");
-    await Scouts.makeMove(2, "place_scout 1,0");
-    updatePieces();
-  });
+  makeMove(1, "place_scout 0,9");
+  makeMove(2, "place_scout 0,0");
+  makeMove(1, "place_scout 1,9");
+  makeMove(2, "place_scout 1,0");
 
   const handleCellClick = (idx: number) => {
     const pos = idx_to_pos(idx);
@@ -135,22 +134,29 @@
 
 <div class="main">
   {#each arr as piece, idx}
-    <div
+    <button
       class="cell"
       class:alternate={isAlternate(idx)}
       on:click={() => handleCellClick(idx)}
     >
       <span class:piece />
-    </div>
+    </button>
   {/each}
 </div>
 
-<style>
+<style lang="scss">
   /* TODO: DONT HARDCODE RANDOM PIXEL VALUES LOL */
   .main {
+    --cell-size: min(calc(100vw / 10), 65px);
+
     display: grid;
-    grid-template-rows: repeat(10, 50px);
-    grid-template-columns: repeat(8, 50px);
+    grid-template-rows: repeat(10, var(--cell-size));
+    grid-template-columns: repeat(8, var(--cell-size));
+    background-color: var(--background-color-lighter);
+    border: var(--stroke-width) solid var(--stroke-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    width: min-content;
   }
 
   .cell {
@@ -159,18 +165,24 @@
     align-items: center;
     aspect-ratio: 1;
     background-color: var(--cell-default);
+
+    border: none;
+    outline: none;
+
+    user-select: none;
+    cursor: pointer;
+
+    &.alternate {
+      background-color: var(--alternate-cell-default);
+    }
   }
 
   .piece {
-    width: 40px;
+    width: calc(var(--cell-size) * 0.65);
     position: absolute;
     aspect-ratio: 1;
     background-color: var(--red-player-fill);
     border-radius: 50%;
-    border: 4px solid var(--red-player-border);
-  }
-
-  .cell.alternate {
-    background-color: var(--alternate-cell-default);
+    border: var(--stroke-width) solid var(--red-player-border);
   }
 </style>

@@ -1,8 +1,10 @@
 <script lang="ts">
-  import Board from "./lib/components/Board.svelte";
+  import Game from "#lib/components/Game.svelte";
 </script>
 
-<Board />
+<main>
+  <Game />
+</main>
 
-<style>
+<style lang="scss">
 </style>

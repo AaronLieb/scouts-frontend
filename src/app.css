@@ -1,6 +1,30 @@
 :root {
-  --cell-default: #E9D194;
-  --alternate-cell-default: #DFAB6E;
-  --red-player-fill: #FF4141;
+  --cell-default: #e9d194;
+  --alternate-cell-default: #dfab6e;
+
+  --red-player-fill: #ff4141;
   --red-player-border: #882222;
+
+  --blue-player-fill: #41a4ff;
+  --blue-player-border: #1e4c76;
+
+  --background-color: #1e1e1e;
+  --background-color-lighter: #404040;
+
+  --stroke-color: #656565;
+  --stroke-width: 3px;
+
+  --border-radius: 10px;
+
+  --inline-margin: 1em;
+  --inline-margin-half: 0.5em;
+  --block-margin: 2rem;
+
+  --transition-short: 100ms;
+  --transition-long: 200ms;
+}
+
+body {
+  background-color: var(--background-color);
+  font-family: "Source Sans 3", sans-serif;
 }
