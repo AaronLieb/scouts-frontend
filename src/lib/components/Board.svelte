@@ -44,6 +44,7 @@
     await Scouts.makeMove(2, "place_scout 1,0");
     updatePieces();
   });
+
   const handleCellClick = (idx: number) => {
     const pos = idx_to_pos(idx);
 
@@ -71,8 +72,8 @@
     if (!next_state) {
       console.log(
         `There is no state called ${current_state} in state_transitions: ${Object.keys(
-          state_transitions
-        )}`
+          state_transitions,
+        )}`,
       );
       next_state = {};
       next_state[action] = () => {
@@ -80,14 +81,12 @@
       }; // nop, basically
     }
 
-    console.log("DEBUG: ", next_state);
-
     const state_function = next_state[action];
 
     if (!state_function) {
       console.log(
         `Undefined state transition from ${current_state} with action ${action} and params ${params}\n` +
-          `The valid states from ${current_state} are:\n${state_transitions[current_state]}`
+          `The valid states from ${current_state} are:\n${state_transitions[current_state]}`,
       );
     }
 
