@@ -1,1 +1,1 @@
-# scouts-frontend
+# Scouts
