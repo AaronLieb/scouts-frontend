@@ -1,4 +1,6 @@
 :root {
   --cell-default: #E9D194;
   --alternate-cell-default: #DFAB6E;
+  --red-player-fill: #FF4141;
+  --red-player-border: #882222;
 }
