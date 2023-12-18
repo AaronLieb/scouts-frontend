@@ -1,7 +1,13 @@
 <script lang="ts">
-  import { type Piece } from "scouts-wasm";
+  import { type Player, type Piece, type Move } from "scouts-wasm";
   import { onMount } from "svelte";
-  import { makeMove, pieces, currentTurn } from "#lib/scouts.js";
+  import { makeMove as _makeMove, pieces, currentTurn } from "#lib/scouts";
+
+  const makeMove = (player: Player, move: Move) => {
+    arr = Array(80).fill(null);
+    _makeMove(player, move);
+    console.log($pieces);
+  }
 
   const rows = 10;
   const cols = 8;
@@ -28,7 +34,6 @@
     }
     const idx = pos_to_idx(x, y);
     arr[idx] = piece;
-    arr = [...arr];
   });
   $: player = $currentTurn?.player;
 
@@ -39,10 +44,6 @@
   };
 
   // Delete this once we have ways to make moves
-  makeMove(1, "place_scout 0,9");
-  makeMove(2, "place_scout 0,0");
-  makeMove(1, "place_scout 1,9");
-  makeMove(2, "place_scout 1,0");
 
   const handleCellClick = (idx: number) => {
     const pos = idx_to_pos(idx);
@@ -92,7 +93,8 @@
     current_state = state_function(...params);
   };
 
-  let current_state = "turn_start";
+  let current_state = "placing_scouts";
+  let selected_piece: Piece | null;
 
   type DFA = {
     [key: string]: StateTransition;
@@ -102,27 +104,45 @@
     [key: string]: (...args: any[]) => string;
   };
 
+  $: console.log(current_state)
   const state_transitions: DFA = {
+    placing_scouts: {
+      click_empty_cell: (x: number, y: number) => {
+        makeMove($currentTurn?.player ?? 1, `place_scout ${x},${y}` as Move);
+        return ($pieces.length == 9) ? "turn_start" : "placing_scouts"
+      }
+    },
     turn_start: {
       click_enemy_piece: (_piece: Piece) => {
         return "turn_start";
       },
       click_friendly_piece: (_piece: Piece) => {
+        selected_piece = _piece;
         console.log("clicked friendly");
         return "piece_selected";
       },
       click_empty_cell: () => {
-        return "turn_start";
+        return "turn_start"
       } /* TODO: boulder stuff on empty cell click */,
     },
 
     piece_selected: {
       click_friendly_piece: (_piece: Piece) => {
-        return "turn_start";
+        if (selected_piece === _piece) {
+          selected_piece = null;
+          return "turn_start"
+        }
+        else {
+          selected_piece = _piece;
+          return "piece_selected";
+        }
       },
       click_empty_cell: (x: number, y: number) => {
+        if (selected_piece == null) throw new Error("Expected selected piece.")
+        const move = `${selected_piece.position.join()} ${x},${y}` as Move
+        makeMove($currentTurn?.player ?? 1, `dash ${move}` as Move);
         console.log(`clicked empty cell after selecting piece: (${x}, ${y})`);
-        return "todo";
+        return "turn_start";
       },
     },
   };
@@ -139,7 +159,7 @@
       class:alternate={isAlternate(idx)}
       on:click={() => handleCellClick(idx)}
     >
-      <span class:piece />
+      <span class:piece class:red={piece?.player == 1} class:blue={piece?.player == 2}/>
     </button>
   {/each}
 </div>
@@ -183,6 +203,16 @@
     aspect-ratio: 1;
     background-color: var(--red-player-fill);
     border-radius: 50%;
+    border: var(--stroke-width) solid gray;
+  }
+
+  .red {
+    background-color: var(--red-player-fill);
     border: var(--stroke-width) solid var(--red-player-border);
+  }
+
+  .blue {
+    background-color: var(--blue-player-fill);
+    border: var(--stroke-width) solid var(--blue-player-border);
   }
 </style>
