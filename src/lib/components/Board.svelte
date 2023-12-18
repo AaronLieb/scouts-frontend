@@ -1,38 +1,60 @@
 <script lang="ts">
   import { type Piece } from "scouts-wasm";
+  import { onMount } from "svelte";
+
   const rows = 10;
   const cols = 8;
-  const arr = Array(rows * cols).fill("A");
+
+  let arr: (Piece | null)[] = Array(rows * cols).fill(null);
 
   const pieces: Piece[] = [
     { kind: "scout", player: 1, position: "2,3", returning: false },
   ];
 
-  const pos_to_idx = (x, y) => {
-    return y * rows + x;
+  const pos_to_idx = (x: number, y: number) => {
+    return y * cols + x;
   };
 
-  pieces.forEach((piece) => {});
+  pieces.forEach((piece) => {
+    const pos = piece.position as string;
+    const [x, y] = pos.split(",").map((item) => parseInt(item));
+    const idx = pos_to_idx(x, y);
+    arr[idx] = piece;
+    arr = [...arr];
+  });
+
+  const isAlternate = (idx: number) => {
+    const x = idx % cols;
+    const y = Math.floor(idx / cols);
+    return (x + y) % 2 === 0;
+  };
+
+  onMount(async () => {});
 </script>
 
 <div class="main">
-  {#each arr as item}
-    <div class="cell">{item}</div>
+  {#each arr as item, idx}
+    {#if !item}
+      <div class="cell" class:alternate={isAlternate(idx)} />
+    {:else}
+      <div class="cell" class:alternate={isAlternate(idx)}>{item.position}</div>
+    {/if}
   {/each}
 </div>
 
 <style>
   .main {
     display: grid;
-    grid-template-rows: repeat(10, 30px);
-    grid-template-columns: repeat(8, 30px);
+    grid-template-rows: repeat(10, 50px);
+    grid-template-columns: repeat(8, 50px);
   }
 
   .cell {
-    width: 40;
     aspect-ratio: 1;
-    background-color: yellow;
-    border: 2px dotted black;
-    color: black;
+    background-color: var(--cell-default);
+  }
+
+  .cell.alternate {
+    background-color: var(--alternate-cell-default);
   }
 </style>
