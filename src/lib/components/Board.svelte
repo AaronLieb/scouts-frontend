@@ -3,7 +3,8 @@
   import { onMount } from "svelte";
   import { makeMove as _makeMove, pieces, currentTurn } from "#lib/scouts";
 
-  const makeMove = (player: Player, move: Move) => {
+  const makeMove = (player: Player | undefined, move: Move) => {
+    if (!player) throw new Error("Unable to determine player turn.")
     arr = Array(80).fill(null);
     _makeMove(player, move);
     console.log($pieces);
@@ -108,7 +109,7 @@
   const state_transitions: DFA = {
     placing_scouts: {
       click_empty_cell: (x: number, y: number) => {
-        makeMove($currentTurn?.player ?? 1, `place_scout ${x},${y}` as Move);
+        makeMove($currentTurn?.player, `place_scout ${x},${y}` as Move);
         return ($pieces.length == 9) ? "turn_start" : "placing_scouts"
       }
     },
@@ -121,9 +122,10 @@
         console.log("clicked friendly");
         return "piece_selected";
       },
-      click_empty_cell: () => {
+      click_empty_cell: (x: number, y: number) => {
+        makeMove($currentTurn?.player, `boulder ${[x,y].join()}` as Move)
         return "turn_start"
-      } /* TODO: boulder stuff on empty cell click */,
+      }
     },
 
     piece_selected: {
@@ -137,10 +139,21 @@
           return "piece_selected";
         }
       },
+      click_enemy_piece: (_piece: Piece) => {
+        selected_piece = null;
+        return "turn_start";
+      },
       click_empty_cell: (x: number, y: number) => {
         if (selected_piece == null) throw new Error("Expected selected piece.")
         const move = `${selected_piece.position.join()} ${x},${y}` as Move
-        makeMove($currentTurn?.player ?? 1, `dash ${move}` as Move);
+        let moveType = "dash"
+        if (
+          Math.abs(selected_piece.position[0] as number - x) > 1 || 
+          Math.abs(selected_piece.position[1] as number - y) > 1
+        ) {
+          moveType = "jump"
+        }
+        makeMove($currentTurn?.player, `${moveType} ${move}` as Move);
         console.log(`clicked empty cell after selecting piece: (${x}, ${y})`);
         return "turn_start";
       },
