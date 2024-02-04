@@ -1,7 +1,7 @@
 <script lang="ts">
   import Avatar from "#lib/components/Avatar.svelte";
   import Triangle from "#lib/components/svg/Triangle.svelte";
-  import { currentTurn, type Player } from "#lib/scouts.js";
+  import { currentTurn } from "#lib/scouts.ts";
 
   type PlayerInfo = {
     name?: string;
