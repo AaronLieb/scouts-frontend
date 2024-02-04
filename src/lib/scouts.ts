@@ -33,4 +33,4 @@ export async function deleteLobby(joinCode: string) {
   return res
 }
 
-console.log("TEST", module.exports)
+// console.log("TEST", module.exports)

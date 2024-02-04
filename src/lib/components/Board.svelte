@@ -1,25 +1,19 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Piece } from "#lib/scouts";
-  import Cell from "#lib/components/Cell.svelte"
+  import { type Piece } from "#lib/scouts";
+  import Cell from "#lib/components/Cell.svelte";
 
-  const LENGTH = 10
-  const WIDTH = 8
+  const LENGTH = 10;
+  const WIDTH = 8;
 
-  function handleCellClick(idx: number) {
+  function handleCellClick(idx: number) {}
 
-  }
-
-  let boardArr: Piece[] = Array(LENGTH * WIDTH).fill({})
+  let boardArr: Piece[] = Array(LENGTH * WIDTH).fill({});
 </script>
-
 
 <div class="main">
   {#each boardArr as piece, idx}
-    <Cell
-      piece={piece}
-      on:click={() => handleCellClick(idx)}
-    />
+    <Cell {piece} on:click={() => handleCellClick(idx)} />
   {/each}
 </div>
 
