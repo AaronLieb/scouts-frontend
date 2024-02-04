@@ -1,36 +1,36 @@
-import * as scouts from "scouts-wasm";
 import { writable, readable } from "svelte/store";
-import { load as loadScoutsEngine } from "scouts-wasm";
-import wasmURL from "scouts-wasm/dist/main.wasm?url";
 
-await loadScoutsEngine(wasmURL);
+const API_URL = 'http://localhost:3006/'
 
-export type Game = typeof Scouts;
-export * from "scouts-wasm";
-
-export const pieces = writable<scouts.Piece[]>([]);
-export const pastTurns = writable<scouts.PastTurn[]>([]);
-export const currentTurn = writable<scouts.CurrentTurn | null>(null);
-
-export async function update(fn: (game: Game) => Promise<void>) {
-  await fn(Scouts);
-  await Promise.all([
-    Scouts.pastTurns().then(pastTurns.set),
-    Scouts.currentTurn().then(currentTurn.set),
-    Scouts.boardPieces().then(pieces.set),
-  ]);
+export type Turn = {
+  player?: string
 }
 
-export async function resetGame() {
-  await update(async (game) => game.resetGame());
+export type Piece = {
+  player?: string,
+  type?: string
 }
 
-export async function makeMove(player: scouts.Player, move: scouts.Move) {
-  await update(async (game) => game.makeMove(player, move));
+export let currentTurn: Turn = { player: "red" };
+
+export async function createNewLobby() {
+  const ENDPOINT = 'create_new_lobby'
+  const res = await fetch(API_URL + ENDPOINT).then(res => res.json())
+  return res
 }
 
-export async function possibleMoves(player: scouts.Player) {
-  return await Scouts.possibleMoves(player);
+export async function joinLobby(joinCode: string, player: number) {
+  const ENDPOINT = 'join_lobby'
+  const PARAMS = `?join_code=${joinCode}&player=${player}`
+  const res = await fetch(API_URL + ENDPOINT + PARAMS).then(res => res.json())
+  return res
 }
 
-await resetGame();
+export async function deleteLobby(joinCode: string) {
+  const ENDPOINT = 'delete_lobby'
+  const PARAMS = `?join_code=${joinCode}`
+  const res = await fetch(API_URL + ENDPOINT + PARAMS).then(res => res.json())
+  return res
+}
+
+console.log("TEST", module.exports)

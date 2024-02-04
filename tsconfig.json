@@ -12,12 +12,23 @@
      * of JS in `.svelte` files.
      */
     "allowJs": true,
+    "allowImportingTsExtensions": true,
     "checkJs": true,
     "isolatedModules": true,
     "paths": {
-      "#lib/*": ["./src/lib/*"]
+      "#lib/*": [
+        "./src/lib/*"
+      ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.svelte"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }
