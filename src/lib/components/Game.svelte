@@ -1,16 +1,28 @@
 <script lang="ts">
+  import Menu from "#lib/components/Menu.svelte"
   import Board from "#lib/components/Board.svelte";
   import BoardPlayerStatus from "#lib/components/BoardPlayerStatus.svelte";
+  import { GameState, type Lobby } from "#lib/scouts"
+
+  let state: GameState = GameState.Menu;
+  let lobby: Lobby = {
+    id: 0,
+    join_code: 0
+  };
 </script>
 
 <div class="game">
-  <Board />
-  <BoardPlayerStatus
-    player1={{ name: "Player 1" }}
-    player2={{ name: "Player 2" }}
-    player1Time={100}
-    player2Time={100}
-  />
+  {#if state == GameState.Menu}
+    <Menu bind:state bind:lobby />
+  {:else if state == GameState.InGame}
+    <Board />
+    <BoardPlayerStatus
+      player1={{ name: "Player 1" }}
+      player2={{ name: "Player 2" }}
+      player1Time={100}
+      player2Time={100}
+    />
+  {/if}
 </div>
 
 <style lang="scss">

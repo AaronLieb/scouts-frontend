@@ -1,6 +1,16 @@
 <script lang="ts">
-  let createGame = () => {
+  import { type Lobby, GameState, createNewLobby, joinLobby } from "#lib/scouts"
+
+  export let state: GameState;
+  export let lobby: Lobby;
+
+  async function createGame() {
+    lobby = await createNewLobby()
+    state = GameState.InGame
+    await joinLobby(lobby.join_code, 0)
+
   }
+
 </script>
 
 <div class="menu">

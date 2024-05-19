@@ -2,16 +2,21 @@ import { writable, readable } from "svelte/store";
 
 const API_URL = 'http://localhost:3006/'
 
+export enum GameState {
+  Menu = 0,
+  InGame = 1
+}
+
 export type Turn = {
-  player?: string
+  player?: number
 }
 
 export type Piece = {
-  player?: string,
+  player?: number,
   type?: string
 }
 
-export let currentTurn: Turn = { player: "red" };
+export let currentTurn: Turn = { player: 0 };
 
 export async function createNewLobby() {
   const ENDPOINT = 'create_new_lobby'
@@ -32,5 +37,3 @@ export async function deleteLobby(joinCode: string) {
   const res = await fetch(API_URL + ENDPOINT + PARAMS).then(res => res.json())
   return res
 }
-
-console.log("TEST", module.exports)

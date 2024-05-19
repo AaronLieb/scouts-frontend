@@ -14,7 +14,7 @@
   export let player1Time: number;
   export let player2Time: number;
 
-  $: currentPlayer = $currentTurn?.player;
+  $: currentPlayer = currentTurn?.player;
 
   function formatElapsedTime(time: number) {
     const minutes = Math.floor(time / 60);

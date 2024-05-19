@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Piece } from "#lib/scouts";
+  import { type Piece, type Lobby } from "#lib/scouts";
   import Cell from "#lib/components/Cell.svelte"
+
+  export let lobby: Lobby;
 
   const LENGTH = 10
   const WIDTH = 8
