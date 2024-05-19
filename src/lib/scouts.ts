@@ -2,6 +2,11 @@ import { writable, readable } from "svelte/store";
 
 const API_URL = 'http://localhost:3006/'
 
+export type Lobby = {
+  id: string,
+  join_code: string
+}
+
 export enum GameState {
   Menu = 0,
   InGame = 1
