@@ -1,20 +1,15 @@
 <script lang="ts">
   import Avatar from "#lib/components/Avatar.svelte";
   import Triangle from "#lib/components/svg/Triangle.svelte";
-  import { currentTurn } from "#lib/scouts";
+  import type { Player } from "#lib/scouts";
 
-  type PlayerInfo = {
-    name?: string;
-    avatar?: string;
-  };
-
-  export let player1: PlayerInfo;
-  export let player2: PlayerInfo;
+  export let player1: Player;
+  export let player2: Player;
 
   export let player1Time: number;
   export let player2Time: number;
 
-  $: currentPlayer = currentTurn?.player;
+  export let currentTurn: number;
 
   function formatElapsedTime(time: number) {
     const minutes = Math.floor(time / 60);
@@ -24,7 +19,7 @@
 </script>
 
 <div class="board-player-status">
-  <div class="player player1" class:current={currentPlayer == 1}>
+  <div class="player player1" class:current={currentTurn == 1}>
     <Avatar url={player1.avatar} name={player1.name} size="2.5rem" />
     <div>
       <span class="name">{player1.name}</span>
@@ -34,20 +29,20 @@
 
   <div
     class="turn-triangle"
-    class:player1={currentPlayer == 1}
-    class:player2={currentPlayer == 2}
+    class:player1={currentTurn == 1}
+    class:player2={currentTurn == 2}
   >
     <Triangle
-      fill={currentPlayer == 1
+      fill={currentTurn == 1
         ? "var(--red-player-fill)"
         : "var(--blue-player-fill)"}
-      stroke={currentPlayer == 1
+      stroke={currentTurn == 1
         ? "var(--red-player-border)"
         : "var(--blue-player-border)"}
     />
   </div>
 
-  <div class="player player2" class:current={currentPlayer === 2}>
+  <div class="player player2" class:current={currentTurn === 2}>
     <Avatar url={player2.avatar} name={player2.name} size="2.5rem" />
     <div>
       <span class="name">{player2.name}</span>

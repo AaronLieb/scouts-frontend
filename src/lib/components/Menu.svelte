@@ -1,25 +1,27 @@
 <script lang="ts">
-  import {
-    type Lobby,
-    GameState,
-    createNewLobby,
-    joinLobby,
-  } from "#lib/scouts";
+  import type { Player } from "#lib/types";
+  import { GameState } from "#lib/types";
+  import { setLobby, setAuthToken, createNewLobby, joinLobby } from "#lib/api";
 
   export let state: GameState;
-  export let lobby: Lobby;
+  export let player: Player;
+
+  async function join(joinCode: string, side: number) {
+    const response = await joinLobby(joinCode, side);
+    player = { name: "test", side: side };
+    setLobby(joinCode);
+    setAuthToken(response.player_id);
+    state = GameState.InGame;
+  }
 
   async function createGame() {
-    lobby = await createNewLobby();
-    console.log(lobby.join_code);
-    await joinLobby(lobby.join_code, 1);
-    state = GameState.InGame;
+    const response = await createNewLobby();
+    join(response.join_code, 1);
   }
 
   async function joinGame() {
     let joinCode = prompt("Game ID") ?? "00000";
-    await joinLobby(joinCode, 2);
-    state = GameState.InGame;
+    join(joinCode, 2);
   }
 </script>
 

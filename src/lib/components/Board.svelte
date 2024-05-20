@@ -1,25 +1,94 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { type Piece, type Lobby } from "#lib/scouts";
-  import Cell from "#lib/components/Cell.svelte"
 
-  export let lobby: Lobby;
+  import type { Player, Piece } from "#lib/types";
+  import { getBoard, placePiece } from "#lib/api";
+  import Cell from "#lib/components/Cell.svelte";
 
-  const LENGTH = 10
-  const WIDTH = 8
+  export let currentTurn: number;
+  export let player: Player;
 
-  function handleCellClick(idx: number) {
+  const LENGTH = 10;
+  const WIDTH = 8;
 
+  // poll every 5 seconds
+  const POLL_DELAY = 5 * 1000;
+
+  let phase = "setup";
+  let selectedPieceIdx: number;
+
+  onMount(subscribe);
+
+  function subscribe() {
+    setInterval(updateBoard, POLL_DELAY);
   }
 
-  let boardArr: Piece[] = Array(LENGTH * WIDTH).fill({})
-</script>
+  function getRow(idx: number) {
+    return Math.floor(idx / WIDTH);
+  }
 
+  function switchTurns() {
+    currentTurn = currentTurn == 1 ? 2 : 1;
+  }
+
+  function parseBoardState(boardState: string) {
+    let parsed = JSON.parse(boardState);
+    boardArr = parsed.state.map((x: any) => {
+      if (x === null) return {};
+      else return { player: x.player };
+    });
+    phase = parsed.phase;
+    switchTurns();
+    return parsed;
+  }
+
+  async function updateBoard() {
+    let response = await getBoard();
+    parseBoardState(response.board);
+  }
+
+  async function handlePlacePiece(idx: number) {
+    if (player.side === 1 && getRow(idx) !== 0) return;
+    if (player.side === 2 && getRow(idx) !== LENGTH - 1) return;
+    let response = await placePiece(idx % WIDTH);
+    console.log(parseBoardState(response.board));
+  }
+
+  function handleSelectPiece(idx: number) {
+    if (selectedPieceIdx === null) {
+      selectedPieceIdx = idx;
+      boardArr[idx].selected = true;
+      console.log("selected new piece");
+    } else {
+      boardArr[selectedPieceIdx].selected = false;
+      boardArr[idx].selected = true;
+      selectedPieceIdx = idx;
+      console.log("changed selected piece");
+    }
+  }
+
+  function handleMovePiece(idx: number) {
+    // returns true/false if valid/invalid
+    return false;
+  }
+
+  function handleCellClick(idx: number) {
+    if (currentTurn != player.side) return;
+    if (phase === "setup") return handlePlacePiece(idx);
+    if (selectedPieceIdx === null) return handleSelectPiece(idx);
+    if (!handleMovePiece(idx)) {
+      handleSelectPiece(idx);
+    }
+  }
+
+  let boardArr: Piece[] = Array(LENGTH * WIDTH).fill({});
+</script>
 
 <div class="main">
   {#each boardArr as piece, idx}
     <Cell
-      piece={piece}
+      alternate={(idx + Math.floor(idx / WIDTH)) % 2 == 0}
+      {piece}
       on:click={() => handleCellClick(idx)}
     />
   {/each}
@@ -38,42 +107,5 @@
     border-radius: var(--border-radius);
     overflow: hidden;
     width: min-content;
-  }
-
-  .cell {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    aspect-ratio: 1;
-    background-color: var(--cell-default);
-
-    border: none;
-    outline: none;
-
-    user-select: none;
-    cursor: pointer;
-
-    &.alternate {
-      background-color: var(--alternate-cell-default);
-    }
-  }
-
-  .piece {
-    width: calc(var(--cell-size) * 0.65);
-    position: absolute;
-    aspect-ratio: 1;
-    background-color: var(--red-player-fill);
-    border-radius: 50%;
-    border: var(--stroke-width) solid gray;
-  }
-
-  .red {
-    background-color: var(--red-player-fill);
-    border: var(--stroke-width) solid var(--red-player-border);
-  }
-
-  .blue {
-    background-color: var(--blue-player-fill);
-    border: var(--stroke-width) solid var(--blue-player-border);
   }
 </style>
