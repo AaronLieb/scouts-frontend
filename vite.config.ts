@@ -12,10 +12,4 @@ export default defineConfig({
       "#lib": path.resolve(__dirname, "./src/lib"),
     },
   },
-  server: {
-    // cors: {
-    //   origin: "*"
-    // }
-    cors: false
-  }
 });
