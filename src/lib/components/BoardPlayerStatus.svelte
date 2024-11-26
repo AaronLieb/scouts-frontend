@@ -1,7 +1,7 @@
 <script lang="ts">
   import Avatar from "#lib/components/Avatar.svelte";
   import Triangle from "#lib/components/svg/Triangle.svelte";
-  import type { Player } from "#lib/scouts";
+  import type { Player } from "#lib/types";
 
   export let player1: Player;
   export let player2: Player;

@@ -1,10 +1,12 @@
+import { BOARD_WIDTH } from "./constants"
+
 export type Player = {
   side: number
   name: string,
   avatar?: string
 }
 
-export type Lobby = {
+export type Game = {
   id: string,
 }
 
@@ -23,3 +25,15 @@ export enum GameState {
   InGame = 1,
 }
 
+export class Point {
+
+  public x: number;
+  public y: number;
+  public id: number;
+
+  constructor(idx: number) {
+    this.id = idx
+    this.x = idx % BOARD_WIDTH;
+    this.y = Math.floor(idx / BOARD_WIDTH);
+  }
+}

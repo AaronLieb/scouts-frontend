@@ -9,6 +9,8 @@
     class:piece={piece?.player != null}
     class:red={piece?.player == 1}
     class:blue={piece?.player == 2}
+    class:selected={piece.selected}
+    class:notselected={!piece.selected}
   />
 </button>
 
@@ -48,5 +50,13 @@
   .blue {
     background-color: var(--blue-player-fill);
     border: var(--stroke-width) solid var(--blue-player-border);
+  }
+
+  .selected {
+    opacity: 0.6;
+  }
+
+  .notselected {
+    opacity: 1;
   }
 </style>

@@ -1,95 +1,157 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import * as validator from "scouts-wasm";
+  import wasmURL from "scouts-wasm/dist/main.wasm?url";
 
+  import type * as scoutswasm from "scouts-wasm";
   import type { Player, Piece } from "#lib/types";
-  import { getBoard, placePiece } from "#lib/api";
+  import type {
+    PlayerJoinedEvent,
+    TurnBeginEvent,
+    MoveMadeEvent,
+  } from "#lib/events.ts";
+  import { Point } from "#lib/types";
   import Cell from "#lib/components/Cell.svelte";
+  import { BOARD_LENGTH, BOARD_WIDTH } from "#lib/constants.ts";
+  import { subscribe, makeMove } from "#lib/api.ts";
 
   export let currentTurn: number;
   export let player: Player;
 
-  const LENGTH = 10;
-  const WIDTH = 8;
-
-  // poll every 5 seconds
-  const POLL_DELAY = 5 * 1000;
-
   let phase = "setup";
-  let selectedPieceIdx: number;
+  let selectedPiece: Point | null = null;
+  let turnCount = 0;
 
-  onMount(subscribe);
+  onMount(async () => {
+    // this should be loaded in the background on website startup probably, or a add a loading symbol
+    await validator.load(wasmURL);
+    validator.resetGame();
+    subscribe(onPlayerJoin, onTurnBegin, onMoveMade);
+  });
 
-  function subscribe() {
-    setInterval(updateBoard, POLL_DELAY);
+  /*
+   * Event Handlers
+   */
+
+  function onPlayerJoin(ev: PlayerJoinedEvent) {
+    console.log("Player joined", ev);
   }
 
-  function getRow(idx: number) {
-    return Math.floor(idx / WIDTH);
+  function onTurnBegin(ev: TurnBeginEvent) {
+    console.log("Turn Begin", ev);
+    currentTurn = ev.player_side;
   }
 
-  function switchTurns() {
-    currentTurn = currentTurn == 1 ? 2 : 1;
+  function onMoveMade(ev: MoveMadeEvent) {
+    console.log("Move Made", ev);
+    turnCount += 1;
+    if (turnCount >= 10) {
+      phase = "started";
+    }
+    validator.makeMove(ev.player_side, ev.move);
+    boardArr = Array(BOARD_LENGTH * BOARD_WIDTH).fill({});
+    for (let piece of validator.boardPieces()) {
+      if (piece.kind == "scout") {
+        const position = piece.position as [number, number];
+        const idx = position[1] * BOARD_WIDTH + position[0];
+        boardArr[idx] = {
+          player: piece.player,
+          type: piece.kind,
+          selected: false,
+        };
+      }
+    }
   }
 
-  function parseBoardState(boardState: string) {
-    let parsed = JSON.parse(boardState);
-    boardArr = parsed.state.map((x: any) => {
-      if (x === null) return {};
-      else return { player: x.player };
-    });
-    phase = parsed.phase;
-    switchTurns();
-    return parsed;
+  /*
+   * Client side handlers
+   */
+
+  function handleCellClick(p: Point) {
+    console.log("handleCellClick");
+    if (currentTurn != player.side) return;
+    // During setup phase, render the possible moves before selecting a piece
+    if (phase === "setup") placePiece(p);
+    // After setup, only render possible moves once a piece is selected
+    else if (selectedPiece === null) selectPiece(p);
+    else if (p.x == selectedPiece.x && p.y == selectedPiece.y) {
+      selectedPiece = null;
+    } else if (!movePiece(p)) {
+      selectPiece(p);
+    }
   }
 
-  async function updateBoard() {
-    let response = await getBoard();
-    parseBoardState(response.board);
+  async function placePiece(p: Point) {
+    console.log("HandlePlacePiece");
+
+    const moveString = `place_scout ${p.x},${p.y}`;
+    console.log("moveString", moveString);
+    const possibleMoves = validator.possibleMoves(
+      player.side as scoutswasm.Player,
+    );
+    console.log("Possible Moves", possibleMoves);
+    if (!possibleMoves.moves.includes(moveString as scoutswasm.Move)) {
+      console.log("INVALID MOVE");
+      return;
+    }
+    console.log("VALID MOVE");
+    await makeMove(moveString);
   }
 
-  async function handlePlacePiece(idx: number) {
-    if (player.side === 1 && getRow(idx) !== 0) return;
-    if (player.side === 2 && getRow(idx) !== LENGTH - 1) return;
-    let response = await placePiece(idx % WIDTH);
-    console.log(parseBoardState(response.board));
-  }
-
-  function handleSelectPiece(idx: number) {
-    if (selectedPieceIdx === null) {
-      selectedPieceIdx = idx;
-      boardArr[idx].selected = true;
+  function selectPiece(p: Point) {
+    console.log("HandleSelectPiece");
+    if (selectedPiece === null) {
+      selectedPiece = p;
+      boardArr[p.id].selected = true;
       console.log("selected new piece");
     } else {
-      boardArr[selectedPieceIdx].selected = false;
-      boardArr[idx].selected = true;
-      selectedPieceIdx = idx;
+      boardArr[selectedPiece.id].selected = false;
+      boardArr[p.id].selected = true;
+      selectedPiece = p;
       console.log("changed selected piece");
     }
   }
 
-  function handleMovePiece(idx: number) {
-    // returns true/false if valid/invalid
-    return false;
-  }
+  async function movePiece(p: Point) {
+    let moveType = "dash";
 
-  function handleCellClick(idx: number) {
-    if (currentTurn != player.side) return;
-    if (phase === "setup") return handlePlacePiece(idx);
-    if (selectedPieceIdx === null) return handleSelectPiece(idx);
-    if (!handleMovePiece(idx)) {
-      handleSelectPiece(idx);
+    if (selectedPiece == null) {
+      return;
     }
+
+    if (
+      Math.abs(selectedPiece.x - p.x) > 1 ||
+      Math.abs(selectedPiece.y - p.y) > 1
+    ) {
+      moveType = "jump";
+    }
+
+    const moveString = `${moveType} ${selectedPiece.x},${selectedPiece.y} ${p.x},${p.y}`;
+    console.log("moveString", moveString);
+    const possibleMoves = validator.possibleMoves(
+      player.side as scoutswasm.Player,
+    );
+    console.log("Possible Moves", possibleMoves);
+    if (!possibleMoves.moves.includes(moveString as scoutswasm.Move)) {
+      console.log("INVALID MOVE");
+      return false;
+    }
+    console.log("VALID MOVE");
+
+    selectedPiece = null;
+    await makeMove(moveString);
+    return true;
   }
 
-  let boardArr: Piece[] = Array(LENGTH * WIDTH).fill({});
+  let boardArr: Piece[] = Array(BOARD_LENGTH * BOARD_WIDTH).fill({});
 </script>
 
 <div class="main">
   {#each boardArr as piece, idx}
     <Cell
-      alternate={(idx + Math.floor(idx / WIDTH)) % 2 == 0}
+      alternate={(idx + Math.floor(idx / BOARD_WIDTH)) % 2 == 0}
       {piece}
-      on:click={() => handleCellClick(idx)}
+      on:click={() => handleCellClick(new Point(idx))}
     />
   {/each}
 </div>

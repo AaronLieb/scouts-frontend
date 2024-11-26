@@ -2,7 +2,7 @@
   import Menu from "#lib/components/Menu.svelte";
   import Board from "#lib/components/Board.svelte";
   import BoardPlayerStatus from "#lib/components/BoardPlayerStatus.svelte";
-  import type { Lobby, Player } from "#lib/types";
+  import type { Player } from "#lib/types";
   import { GameState } from "#lib/types";
 
   let state: GameState = GameState.Menu;
