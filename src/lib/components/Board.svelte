@@ -98,6 +98,7 @@
     await makeMove(moveString);
   }
 
+  // todo: show list of possible moves after selecting a piece.
   function selectPiece(p: Point) {
     console.log("HandleSelectPiece");
     if (selectedPiece === null) {
