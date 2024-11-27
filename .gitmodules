@@ -1,0 +1,3 @@
+[submodule "scouts-server"]
+	path = scouts-server
+	url = https://github.com/diamondburned/scouts-server.git
