@@ -6,6 +6,7 @@
 
 <button on:click class="cell" class:alternate>
   <span
+    class:possibleMove={piece.possible}
     class:piece={piece?.player != null}
     class:red={piece?.player == 1}
     class:blue={piece?.player == 2}
@@ -50,6 +51,14 @@
   .blue {
     background-color: var(--blue-player-fill);
     border: var(--stroke-width) solid var(--blue-player-border);
+  }
+
+  .possibleMove {
+    width: calc(var(--cell-size) * 0.3);
+    position: absolute;
+    aspect-ratio: 1;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
   }
 
   .selected {

@@ -3,27 +3,23 @@
   import Triangle from "#lib/components/svg/Triangle.svelte";
   import type { Player } from "#lib/types";
 
-  export let player1: Player;
-  export let player2: Player;
-
-  export let player1Time: number;
-  export let player2Time: number;
+  export let players: Player[];
 
   export let currentTurn: number;
 
   function formatElapsedTime(time: number) {
     const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
+    const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
 </script>
 
 <div class="board-player-status">
   <div class="player player1" class:current={currentTurn == 1}>
-    <Avatar url={player1.avatar} name={player1.name} size="2.5rem" />
+    <Avatar url={players[0].avatar} name={players[0].name} size="2.5rem" />
     <div>
-      <span class="name">{player1.name}</span>
-      <span class="time">{formatElapsedTime(player1Time)}</span>
+      <span class="name">{players[0].name}</span>
+      <span class="time">{formatElapsedTime(players[0].time)}</span>
     </div>
   </div>
 
@@ -43,10 +39,10 @@
   </div>
 
   <div class="player player2" class:current={currentTurn === 2}>
-    <Avatar url={player2.avatar} name={player2.name} size="2.5rem" />
+    <Avatar url={players[1].avatar} name={players[1].name} size="2.5rem" />
     <div>
-      <span class="name">{player2.name}</span>
-      <span class="time">{formatElapsedTime(player2Time)}</span>
+      <span class="name">{players[1].name}</span>
+      <span class="time">{formatElapsedTime(players[1].time)}</span>
     </div>
   </div>
 </div>
@@ -63,6 +59,7 @@
   }
 
   .player {
+    color: white;
     display: flex;
     flex-direction: row;
     align-items: center;

@@ -1,4 +1,4 @@
-import type { Game } from "#lib/types"
+import type { Game } from "./types";
 import type { MoveMadeEvent, PlayerJoinedEvent, TurnBeginEvent } from "./events";
 
 const API_URL = 'http://localhost:8080/api/v1'
@@ -25,7 +25,12 @@ export async function createNewGame() {
       'increment': '10s'
     }),
     credentials: 'include'
-  }).then(res => res.json())
+  }).then(res => {
+    if (!res.ok) {
+      return Promise.reject(res)
+    }
+    return res.json()
+  })
 }
 
 export async function joinGame(joinCode: string) {
@@ -35,6 +40,10 @@ export async function joinGame(joinCode: string) {
       'Authorization': authToken
     },
     credentials: 'include'
+  }).then(res => {
+    if (!res.ok) {
+      return Promise.reject(res)
+    }
   })
 }
 
@@ -48,13 +57,17 @@ export async function makeMove(move: string) {
       'move': move
     }),
     credentials: 'include'
+  }).then(res => {
+    if (!res.ok) {
+      return Promise.reject(res)
+    }
   })
 }
 
 export async function subscribe(
-  onPlayerJoin: ((_: PlayerJoinedEvent) => void),
-  onTurnBegin: ((_: TurnBeginEvent) => void),
-  onMoveMade: ((_: MoveMadeEvent) => void)
+  onPlayerJoin: (ev: PlayerJoinedEvent) => void,
+  onTurnBegin: (ev: TurnBeginEvent) => void,
+  onMoveMade: (ev: MoveMadeEvent) => void
 ) {
   const eventSource = new EventSource(`http://localhost:8080/api/v1/game/${lobby.id}/subscribe`)
 

@@ -4,14 +4,18 @@
   import { setLobby, setAuthToken, createNewGame, joinGame } from "#lib/api";
 
   export let state: GameState;
-  export let player: Player;
+  export let players: Player[];
+  export let gameId: string;
+  export let mySide: number;
 
   async function join(joinCode: string, side: number) {
     await joinGame(joinCode);
-    player = { name: "test", side: side };
+    mySide = side;
+    players[side] = { name: "test", side: side, time: 100 };
     setLobby(joinCode);
-    setAuthToken(player.name);
+    setAuthToken(players[side].name);
     state = GameState.InGame;
+    gameId = joinCode;
   }
 
   async function createGame() {

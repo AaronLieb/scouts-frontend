@@ -15,8 +15,9 @@
   import { BOARD_LENGTH, BOARD_WIDTH } from "#lib/constants.ts";
   import { subscribe, makeMove } from "#lib/api.ts";
 
+  export let mySide: number;
   export let currentTurn: number;
-  export let player: Player;
+  export let players: Player[];
 
   let phase = "setup";
   let selectedPiece: Point | null = null;
@@ -49,7 +50,7 @@
       phase = "started";
     }
     validator.makeMove(ev.player_side, ev.move);
-    boardArr = Array(BOARD_LENGTH * BOARD_WIDTH).fill({});
+    resetBoard();
     for (let piece of validator.boardPieces()) {
       if (piece.kind == "scout") {
         const position = piece.position as [number, number];
@@ -58,9 +59,13 @@
           player: piece.player,
           type: piece.kind,
           selected: false,
+          possible: false,
         };
       }
     }
+
+    players[0].time = +ev.time_remaining[0].slice(0, -1);
+    players[1].time = +ev.time_remaining[1].slice(0, -1);
   }
 
   /*
@@ -69,15 +74,58 @@
 
   function handleCellClick(p: Point) {
     console.log("handleCellClick");
-    if (currentTurn != player.side) return;
+    if (currentTurn != mySide) return;
     // During setup phase, render the possible moves before selecting a piece
     if (phase === "setup") placePiece(p);
     // After setup, only render possible moves once a piece is selected
     else if (selectedPiece === null) selectPiece(p);
     else if (p.x == selectedPiece.x && p.y == selectedPiece.y) {
-      selectedPiece = null;
+      unselectPiece();
     } else if (!movePiece(p)) {
       selectPiece(p);
+    }
+  }
+
+  function resetBoard() {
+    for (const i in boardArr) {
+      boardArr[i] = {
+        selected: false,
+        possible: false,
+      };
+    }
+  }
+
+  function unselectPiece() {
+    if (selectedPiece) {
+      boardArr[selectedPiece.id].selected = false;
+      selectedPiece = null;
+      showPossibleMoves();
+    }
+  }
+
+  function showPossibleMoves() {
+    const possibleMoves = validator.possibleMoves(
+      mySide as scoutswasm.Player,
+    ).moves;
+
+    boardArr.forEach((c) => (c.possible = false));
+    if (!selectedPiece) {
+      return;
+    }
+    for (const move of possibleMoves) {
+      const split = move.split(" ");
+      if (split.length < 3) {
+        continue;
+      }
+
+      const before = new Point(split[1]);
+      const after = new Point(split[2]);
+
+      if (!selectedPiece.equals(before)) {
+        continue;
+      }
+
+      boardArr[after.id].possible = true;
     }
   }
 
@@ -86,9 +134,7 @@
 
     const moveString = `place_scout ${p.x},${p.y}`;
     console.log("moveString", moveString);
-    const possibleMoves = validator.possibleMoves(
-      player.side as scoutswasm.Player,
-    );
+    const possibleMoves = validator.possibleMoves(mySide as scoutswasm.Player);
     console.log("Possible Moves", possibleMoves);
     if (!possibleMoves.moves.includes(moveString as scoutswasm.Move)) {
       console.log("INVALID MOVE");
@@ -111,6 +157,8 @@
       selectedPiece = p;
       console.log("changed selected piece");
     }
+
+    showPossibleMoves();
   }
 
   async function movePiece(p: Point) {
@@ -129,9 +177,7 @@
 
     const moveString = `${moveType} ${selectedPiece.x},${selectedPiece.y} ${p.x},${p.y}`;
     console.log("moveString", moveString);
-    const possibleMoves = validator.possibleMoves(
-      player.side as scoutswasm.Player,
-    );
+    const possibleMoves = validator.possibleMoves(mySide as scoutswasm.Player);
     console.log("Possible Moves", possibleMoves);
     if (!possibleMoves.moves.includes(moveString as scoutswasm.Move)) {
       console.log("INVALID MOVE");
@@ -139,12 +185,21 @@
     }
     console.log("VALID MOVE");
 
-    selectedPiece = null;
+    unselectPiece();
     await makeMove(moveString);
+
+    if (moveType == "jump") {
+      selectPiece(p);
+    }
+
     return true;
   }
 
-  let boardArr: Piece[] = Array(BOARD_LENGTH * BOARD_WIDTH).fill({});
+  let boardArr: Piece[] = Array(BOARD_LENGTH * BOARD_WIDTH).fill({
+    selected: false,
+    possible: false,
+  });
+  resetBoard();
 </script>
 
 <div class="main">

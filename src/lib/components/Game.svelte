@@ -6,22 +6,22 @@
   import { GameState } from "#lib/types";
 
   let state: GameState = GameState.Menu;
-  let player: Player;
+  let players: Player[] = [
+    { name: "Player 1", side: 1, time: 100 },
+    { name: "Player 2", side: 2, time: 100 },
+  ];
+  let mySide: number;
   let currentTurn: number = 1;
+  let gameId: string;
 </script>
 
 <div class="game">
   {#if state == GameState.Menu}
-    <Menu bind:player bind:state />
+    <Menu bind:mySide bind:players bind:state bind:gameId />
   {:else if state == GameState.InGame}
-    <Board bind:player bind:currentTurn />
-    <BoardPlayerStatus
-      bind:currentTurn
-      player1={{ name: "Player 1", side: 1 }}
-      player2={{ name: "Player 2", side: 2 }}
-      player1Time={100}
-      player2Time={100}
-    />
+    <Board bind:mySide bind:players bind:currentTurn />
+    <BoardPlayerStatus bind:currentTurn bind:players />
+    <span class="gameId">{gameId}</span>
   {/if}
 </div>
 
@@ -33,5 +33,8 @@
     width: 100%;
     height: 100%;
     grid-gap: calc(var(--inline-margin) / 2);
+  }
+  .gameId {
+    color: white;
   }
 </style>
