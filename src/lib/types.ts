@@ -22,11 +22,6 @@ export type Piece = {
   selected: boolean
 }
 
-export enum GameState {
-  Menu = 0,
-  InGame = 1,
-}
-
 export class Point {
 
   public x: number;

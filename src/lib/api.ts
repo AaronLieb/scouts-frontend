@@ -1,25 +1,15 @@
-import type { Game } from "./types";
 import type { MoveMadeEvent, PlayerJoinedEvent, TurnBeginEvent } from "./events";
+import type { Move } from "scouts-wasm";
 
 const API_URL = 'http://localhost:8080/api/v1'
 
-export let lobby: Game;
-export let authToken: string;
-
-export function setLobby(lobbyId: string) {
-  lobby = { id: lobbyId }
+type CreateGameResponse = {
+  game_id: string
 }
 
-export function setAuthToken(token: string) {
-  authToken = token
-}
-
-export async function createNewGame() {
-  return await fetch(`${API_URL}/game`, {
+export async function createNewGame(): Promise<CreateGameResponse> {
+  return fetch(`${API_URL}/game`, {
     method: 'POST',
-    headers: {
-      'Authorization': authToken
-    },
     body: JSON.stringify({
       'time_limit': '60s',
       'increment': '10s'
@@ -33,12 +23,41 @@ export async function createNewGame() {
   })
 }
 
+type PlayerInfo = {
+  user_id: string
+}
+
+type GameMetadata = {
+  time_limit: string
+  increment: string
+}
+
+type GameInfoResponse = {
+  game_id: string
+  began_at: string
+  player_a: PlayerInfo
+  player_b: PlayerInfo
+  moves: Move[]
+  metadata: GameMetadata
+  created_at: string
+  snapshot_at: string
+}
+
+export async function gameInfo(gameId: string): Promise<GameInfoResponse> {
+  return fetch(`${API_URL}/game/${gameId}/`, {
+    method: 'GET',
+    credentials: 'include'
+  }).then(res => {
+    if (!res.ok) {
+      return Promise.reject(res)
+    }
+    return res.json()
+  })
+}
+
 export async function joinGame(joinCode: string) {
   await fetch(`${API_URL}/game/${joinCode}/join`, {
     method: 'POST',
-    headers: {
-      'Authorization': authToken
-    },
     credentials: 'include'
   }).then(res => {
     if (!res.ok) {
@@ -47,12 +66,9 @@ export async function joinGame(joinCode: string) {
   })
 }
 
-export async function makeMove(move: string) {
-  return await fetch(`${API_URL}/game/${lobby.id}/move`, {
+export async function makeMove(gameId: string, move: string) {
+  return await fetch(`${API_URL}/game/${gameId}/move`, {
     method: 'POST',
-    headers: {
-      'Authorization': authToken
-    },
     body: JSON.stringify({
       'move': move
     }),
@@ -65,11 +81,12 @@ export async function makeMove(move: string) {
 }
 
 export async function subscribe(
+  gameId: string,
   onPlayerJoin: (ev: PlayerJoinedEvent) => void,
   onTurnBegin: (ev: TurnBeginEvent) => void,
   onMoveMade: (ev: MoveMadeEvent) => void
 ) {
-  const eventSource = new EventSource(`http://localhost:8080/api/v1/game/${lobby.id}/subscribe`)
+  const eventSource = new EventSource(`http://localhost:8080/api/v1/game/${gameId}/subscribe`)
 
   eventSource.addEventListener('player_joined', (ev: MessageEvent) => {
     const data = JSON.parse(ev.data) as PlayerJoinedEvent

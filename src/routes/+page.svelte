@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Game from '$lib/components/Game.svelte';
+	import Menu from '$lib/components/Menu.svelte';
 </script>
 
 <main>
-	<Game />
+	<Menu />
 </main>

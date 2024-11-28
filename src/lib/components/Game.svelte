@@ -1,28 +1,43 @@
 <script lang="ts">
-	import Menu from '$lib/components/Menu.svelte';
+	import { gameInfo, joinGame } from '$lib/api';
 	import Board from '$lib/components/Board.svelte';
 	import BoardPlayerStatus from '$lib/components/BoardPlayerStatus.svelte';
 	import type { Player } from '$lib/types';
-	import { GameState } from '$lib/types';
+	import { onMount } from 'svelte';
 
-	let state: GameState = GameState.Menu;
-	let players: Player[] = [
-		{ name: 'Player 1', side: 1, time: 100 },
-		{ name: 'Player 2', side: 2, time: 100 }
-	];
-	let mySide: number;
-	let currentTurn: number = 1;
-	let gameId: string;
+	let players: Player[] = $state([
+		{ name: 'Waiting for player 1', side: 1, time: 100 },
+		{ name: 'Waiting for player 2', side: 2, time: 100 }
+	]);
+	let mySide: number = $state(1);
+	let currentTurn: number = $state(1);
+	let { gameId } = $props();
+
+	onMount(async () => {
+		const info = await gameInfo(gameId);
+		if (info.player_a) {
+			players[0].name = info.player_a.user_id ?? 'Player 1';
+		}
+		if (info.player_b) {
+			players[1].name = info.player_b.user_id ?? 'Player 2';
+		}
+
+		if (!info.player_a) {
+			mySide = 1;
+			await joinGame(gameId);
+			players[0].name = 'Player 1';
+		} else if (!info.player_b) {
+			mySide = 2;
+			await joinGame(gameId);
+			players[1].name = 'Player 2';
+		}
+	});
 </script>
 
 <div class="game">
-	{#if state == GameState.Menu}
-		<Menu bind:mySide bind:players bind:state bind:gameId />
-	{:else if state == GameState.InGame}
-		<Board bind:mySide bind:players bind:currentTurn />
-		<BoardPlayerStatus bind:currentTurn bind:players />
-		<span class="gameId">{gameId}</span>
-	{/if}
+	<Board bind:gameId bind:mySide bind:players bind:currentTurn />
+	<BoardPlayerStatus bind:currentTurn bind:players />
+	<span class="gameId">{gameId}</span>
 </div>
 
 <style lang="scss">

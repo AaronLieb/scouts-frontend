@@ -4,16 +4,26 @@
 	import wasmURL from 'scouts-wasm/dist/main.wasm?url';
 
 	import type * as scoutswasm from 'scouts-wasm';
-	import type { Player, Piece } from '$lib/types.ts';
+	import type { Piece } from '$lib/types.ts';
 	import type { PlayerJoinedEvent, TurnBeginEvent, MoveMadeEvent } from '$lib/events.ts';
 	import { Point } from '$lib/types.ts';
 	import Cell from './Cell.svelte';
 	import { BOARD_LENGTH, BOARD_WIDTH } from '$lib/constants.ts';
 	import { subscribe, makeMove } from '$lib/api.ts';
 
-	export let mySide: number;
-	export let currentTurn: number;
-	export let players: Player[];
+	let {
+		mySide = $bindable(),
+		gameId = $bindable(),
+		currentTurn = $bindable(),
+		players = $bindable()
+	} = $props();
+
+	let boardArr: Piece[] = $state(
+		Array(BOARD_LENGTH * BOARD_WIDTH).fill({
+			selected: false,
+			possible: false
+		})
+	);
 
 	let phase = 'setup';
 	let selectedPiece: Point | null = null;
@@ -23,7 +33,7 @@
 		// this should be loaded in the background on website startup probably, or a add a loading symbol
 		await validator.load(wasmURL);
 		validator.resetGame();
-		subscribe(onPlayerJoin, onTurnBegin, onMoveMade);
+		subscribe(gameId, onPlayerJoin, onTurnBegin, onMoveMade);
 	});
 
 	/*
@@ -135,7 +145,7 @@
 			return;
 		}
 		console.log('VALID MOVE');
-		await makeMove(moveString);
+		await makeMove(gameId, moveString);
 	}
 
 	// todo: show list of possible moves after selecting a piece.
@@ -177,7 +187,7 @@
 		console.log('VALID MOVE');
 
 		unselectPiece();
-		await makeMove(moveString);
+		await makeMove(gameId, moveString);
 
 		if (moveType == 'jump') {
 			selectPiece(p);
@@ -186,10 +196,6 @@
 		return true;
 	}
 
-	let boardArr: Piece[] = Array(BOARD_LENGTH * BOARD_WIDTH).fill({
-		selected: false,
-		possible: false
-	});
 	resetBoard();
 </script>
 
