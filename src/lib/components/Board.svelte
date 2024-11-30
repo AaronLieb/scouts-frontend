@@ -66,6 +66,7 @@
 				boardArr[idx] = {
 					player: piece.player,
 					type: piece.kind,
+					intel: piece.returning,
 					selected: false,
 					possible: false
 				};
@@ -97,6 +98,7 @@
 	function resetBoard() {
 		for (const i in boardArr) {
 			boardArr[i] = {
+				intel: false,
 				selected: false,
 				possible: false
 			};
@@ -207,7 +209,7 @@
 			<Cell
 				alternate={(idx + Math.floor(idx / BOARD_WIDTH)) % 2 == 0}
 				{piece}
-				on:click={() => handleCellClick(new Point(idx))}
+				onclick={() => handleCellClick(new Point(idx))}
 			/>
 		{/each}
 	{/if}
@@ -216,7 +218,7 @@
 			<Cell
 				alternate={(idx + Math.floor(idx / BOARD_WIDTH)) % 2 == 0}
 				{piece}
-				on:click={() => handleCellClick(new Point(BOARD_WIDTH * BOARD_LENGTH - idx - 1))}
+				onclick={() => handleCellClick(new Point(BOARD_WIDTH * BOARD_LENGTH - idx - 1))}
 			/>
 		{/each}
 	{/if}

@@ -1,16 +1,19 @@
 <script lang="ts">
-	import type { Piece } from '$lib/types';
-	export let piece: Piece;
-	export let alternate: boolean;
+	import Intel from './svg/Intel.svelte';
+	let { onclick, alternate, piece } = $props();
 </script>
 
-<button on:click aria-label="Cell" class="cell" class:alternate>
+<button {onclick} aria-label="Cell" class="cell" class:alternate>
+	{#if piece.intel && piece.player}
+		<Intel player={piece.player} />
+	{/if}
 	<span
 		class:possibleMove={piece.possible}
 		class:piece={piece?.player != null}
 		class:red={piece?.player == 1}
 		class:blue={piece?.player == 2}
 		class:selected={piece.selected}
+		class:intel={piece.intel}
 	>
 	</span>
 </button>

@@ -18,6 +18,7 @@ export type Turn = {
 export type Piece = {
   player?: number, // same as Player.side
   type?: string
+  intel: boolean
   possible: boolean
   selected: boolean
 }
