@@ -35,12 +35,15 @@
 </script>
 
 <div class="game">
-	<Board bind:gameId bind:mySide bind:players bind:currentTurn />
 	<BoardPlayerStatus bind:currentTurn bind:players />
-	<span class="gameId">{gameId}</span>
+	<Board bind:gameId bind:mySide bind:players bind:currentTurn />
 </div>
 
 <style lang="scss">
+	div.game {
+		margin: 2rem 0 3rem 0;
+	}
+
 	.game {
 		display: grid;
 		align-items: center;
@@ -48,8 +51,5 @@
 		width: 100%;
 		height: 100%;
 		grid-gap: calc(var(--inline-margin) / 2);
-	}
-	.gameId {
-		color: white;
 	}
 </style>

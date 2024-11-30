@@ -4,7 +4,7 @@
 	export let alternate: boolean;
 </script>
 
-<button on:click aria-hidden="true" class="cell" class:alternate>
+<button on:click aria-label="Cell" class="cell" class:alternate>
 	<span
 		class:possibleMove={piece.possible}
 		class:piece={piece?.player != null}

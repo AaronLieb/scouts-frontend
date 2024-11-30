@@ -8,10 +8,13 @@
   --blue-player-fill: #41a4ff;
   --blue-player-border: #1e4c76;
 
+  --text-color: white;
+  --text-color-darker: gray;
+
   --background-color: #1e1e1e;
   --background-color-lighter: #404040;
 
-  --stroke-color: #656565;
+  --stroke-color: #303030;
   --stroke-width: 3px;
 
   --border-radius: 10px;
@@ -26,5 +29,10 @@
 
 body {
   background-color: var(--background-color);
+  color: var(--text-color);
   font-family: "Source Sans 3", sans-serif;
+}
+
+main {
+  min-height: 80vh;
 }
