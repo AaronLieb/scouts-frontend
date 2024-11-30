@@ -25,6 +25,8 @@
 		})
 	);
 
+	let boardArrReversed: Piece[] = $derived(boardArr.toReversed());
+
 	let phase = 'setup';
 	let selectedPiece: Point | null = null;
 	let turnCount = 0;
@@ -200,13 +202,24 @@
 </script>
 
 <div class="main">
-	{#each boardArr as piece, idx}
-		<Cell
-			alternate={(idx + Math.floor(idx / BOARD_WIDTH)) % 2 == 0}
-			{piece}
-			on:click={() => handleCellClick(new Point(idx))}
-		/>
-	{/each}
+	{#if mySide == 1}
+		{#each boardArr as piece, idx}
+			<Cell
+				alternate={(idx + Math.floor(idx / BOARD_WIDTH)) % 2 == 0}
+				{piece}
+				on:click={() => handleCellClick(new Point(idx))}
+			/>
+		{/each}
+	{/if}
+	{#if mySide == 2}
+		{#each boardArrReversed as piece, idx}
+			<Cell
+				alternate={(idx + Math.floor(idx / BOARD_WIDTH)) % 2 == 0}
+				{piece}
+				on:click={() => handleCellClick(new Point(BOARD_WIDTH * BOARD_LENGTH - idx - 1))}
+			/>
+		{/each}
+	{/if}
 </div>
 
 <style lang="scss">
